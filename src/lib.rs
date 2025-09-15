@@ -1,16 +1,13 @@
+use std::env;
 use std::fs;
 use std::io::{self, Error, ErrorKind};
-use std::path::PathBuf;
-use std::env;
-
+use std::path::{Path, PathBuf};
 
 #[cfg(all(feature = "sync", feature = "async"))]
 compile_error!("Features `sync` and `async` cannot be enabled at the same time.");
 
-
 #[cfg(feature = "sync")]
 pub fn download_asset(path: &PathBuf, urls: Vec<&str>) -> Result<(), std::io::Error> {
-
     if path.exists() {
         return Ok(());
     }
@@ -33,12 +30,9 @@ pub fn download_asset(path: &PathBuf, urls: Vec<&str>) -> Result<(), std::io::Er
             Ok(()) => return Ok(()),
             Err(e) => eprintln!("Failed to download from {}: {}", url, e),
         }
-       
     }
     Err(Error::new(ErrorKind::Other, "All download attempts failed"))
-   
 }
-
 
 #[cfg(feature = "async")]
 pub async fn download_asset(path: &PathBuf, urls: Vec<&str>) -> Result<(), std::io::Error> {
@@ -64,17 +58,14 @@ pub async fn download_asset(path: &PathBuf, urls: Vec<&str>) -> Result<(), std::
             Ok(()) => return Ok(()),
             Err(e) => eprintln!("Failed to download from {}: {}", url, e),
         }
-       
     }
     Err(Error::new(ErrorKind::Other, "All download attempts failed"))
 }
 
-
-
-
 #[cfg(feature = "async")]
 async fn try_download_async(path: &PathBuf, url: &str) -> Result<(), std::io::Error> {
-    let response = reqwest::get(url).await
+    let response = reqwest::get(url)
+        .await
         .map_err(|e| Error::new(ErrorKind::NotFound, format!("Request error: {}", e)))?;
     let bytes = response
         .bytes()
@@ -105,7 +96,8 @@ pub fn home_dir(subdir: &str) -> Result<PathBuf, std::io::Error> {
     Ok(dir.join(subdir))
 }
 
-fn init_parent_path(path: &PathBuf) -> Result<(), std::io::Error> {
+#[allow(dead_code)]
+fn init_parent_path(path: &Path) -> Result<(), std::io::Error> {
     let parent = path.parent().ok_or_else(|| {
         Error::new(
             ErrorKind::InvalidInput,
@@ -117,4 +109,3 @@ fn init_parent_path(path: &PathBuf) -> Result<(), std::io::Error> {
     }
     Ok(())
 }
-
